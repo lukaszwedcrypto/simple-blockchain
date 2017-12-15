@@ -4,19 +4,29 @@ class Block {
     this.timestamp = timestamp,
     this.data = data,
     this.previousHash = previousHash,
-    this.hash  = this.calculateHash()
+    this.hash  = this.calculateHash(),
+    this.nonce = 0;
   }
 
   calculateHash() {
-    const msg = this.index + this.previousHash + this.timestamp + JSON.stringify(this.data)
+    const msg = this.index + this.previousHash + this.timestamp + JSON.stringify(this.data) + this.nonce
     const hash = require('crypto').createHash('sha256').update(msg, 'utf8').digest('hex')
     return hash
+  }
+
+  mineBlock(difficulty) {
+    while (this.hash.substring(0, difficulty) !== Array(difficulty + 1).join(0)) {
+      this.nonce++
+      this.hash = this.calculateHash()
+    }
+    console.log("Block minded: " + this.hash)
   }
 }
 
 class Blockchain {
   constructor() {
     this.chain = [this.createGenesisBlock()]
+    this.difficulty = 4
   }
 
   createGenesisBlock() {
@@ -30,7 +40,7 @@ class Blockchain {
 
   addBlock(newBlock) {
     newBlock.previousHash = this.getLatestBlock().hash
-    newBlock.hash = newBlock.calculateHash();
+    newBlock.mineBlock(this.difficulty)
     this.chain.push(newBlock)
   }
 
